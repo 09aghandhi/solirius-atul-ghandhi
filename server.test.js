@@ -1,13 +1,10 @@
-// server.test.js
 const request = require('supertest');
 const fs = require('fs');
 const path = require('path');
 
-// Set test environment before importing app
 process.env.NODE_ENV = 'test';
 const app = require('./server');
 
-// Mock external dependencies
 jest.mock('winston', () => ({
   createLogger: () => ({
     info: jest.fn(),
@@ -31,14 +28,12 @@ describe('File Upload API', () => {
   const testUploadsDir = path.join(__dirname, 'test-uploads');
 
   beforeAll(() => {
-    // Create test uploads directory
     if (!fs.existsSync(testUploadsDir)) {
       fs.mkdirSync(testUploadsDir);
     }
   });
 
   afterAll(() => {
-    // Clean up test files
     if (fs.existsSync(testUploadsDir)) {
       fs.rmSync(testUploadsDir, { recursive: true, force: true });
     }
@@ -46,7 +41,6 @@ describe('File Upload API', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Add delay between tests to avoid rate limiting
     return new Promise(resolve => setTimeout(resolve, 100));
   });
 
@@ -75,7 +69,6 @@ describe('File Upload API', () => {
     });
 
     test('should reject non-CSV files', async () => {
-      // Create a test text file
       const testFilePath = path.join(testUploadsDir, 'test.txt');
       fs.writeFileSync(testFilePath, 'This is not a CSV file');
 
@@ -83,16 +76,13 @@ describe('File Upload API', () => {
           .post('/upload')
           .attach('file', testFilePath);
 
-      // Should be a 400 error for invalid file type
       expect(response.status).toBe(400);
       expect(response.body.error).toMatch(/Only CSV files are allowed|INVALID_FILE_TYPE/i);
 
-      // Clean up
       fs.unlinkSync(testFilePath);
     });
 
     test('should process valid CSV file', async () => {
-      // Create a test CSV file
       const csvContent = `name,email
 John Doe,john@example.com
 Jane Smith,jane@example.com
@@ -105,7 +95,7 @@ Invalid User,invalid-email`;
           .post('/upload')
           .attach('file', testFilePath);
 
-      expect(response.status).toBeLessThan(500); // Should not be server error
+      expect(response.status).toBeLessThan(500);
 
       if (response.status === 200) {
         expect(response.body).toMatchObject({
@@ -114,18 +104,15 @@ Invalid User,invalid-email`;
           totalRecords: 3
         });
       } else if (response.status === 429) {
-        // Rate limited - that's also acceptable
         expect(response.body).toMatchObject({
           error: expect.stringContaining('Too many')
         });
       }
 
-      // Clean up
       fs.unlinkSync(testFilePath);
     }, 10000);
 
     test('should handle empty CSV file', async () => {
-      // Create an empty CSV file (only headers)
       const csvContent = 'name,email\n';
 
       const testFilePath = path.join(testUploadsDir, 'empty.csv');
@@ -135,19 +122,17 @@ Invalid User,invalid-email`;
           .post('/upload')
           .attach('file', testFilePath);
 
-      if (response.status !== 429) { // If not rate limited
+      if (response.status !== 429) {
         expect(response.status).toBe(400);
         expect(response.body).toMatchObject({
           error: 'CSV file contains no valid records'
         });
       }
 
-      // Clean up
       fs.unlinkSync(testFilePath);
     });
 
     test('should handle malformed CSV file', async () => {
-      // Create a malformed CSV file
       const csvContent = 'name,email\nJohn Doe\nJane Smith,jane@example.com,extra,field';
 
       const testFilePath = path.join(testUploadsDir, 'malformed.csv');
@@ -157,14 +142,13 @@ Invalid User,invalid-email`;
           .post('/upload')
           .attach('file', testFilePath);
 
-      if (response.status !== 429) { // If not rate limited
+      if (response.status !== 429) {
         expect(response.status).toBe(400);
         expect(response.body).toMatchObject({
           error: 'Invalid CSV file format'
         });
       }
 
-      // Clean up
       fs.unlinkSync(testFilePath);
     });
   });
@@ -181,12 +165,10 @@ Invalid User,invalid-email`;
     });
 
     test('should return status for valid upload ID after successful upload', async () => {
-      // Create a test CSV file
       const csvContent = 'name,email\nJohn Doe,john@example.com';
       const testFilePath = path.join(testUploadsDir, 'status-test.csv');
       fs.writeFileSync(testFilePath, csvContent);
 
-      // Wait a bit to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 1100));
 
       const uploadResponse = await request(app)
@@ -207,13 +189,11 @@ Invalid User,invalid-email`;
           progress: expect.any(String)
         });
       } else {
-        // If upload was rate limited, just check that status endpoint works
         const statusResponse = await request(app)
             .get('/status/test-id')
             .expect(404);
       }
 
-      // Clean up
       fs.unlinkSync(testFilePath);
     }, 15000);
   });
@@ -231,13 +211,11 @@ Invalid User,invalid-email`;
   });
 });
 
-// Unit tests for individual functions
 describe('Email Validation Logic', () => {
-  // Mock the email validation function for isolated testing
   const mockValidateEmail = async (email) => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        if (Math.random() < 0.1) { // 10% chance of service error
+        if (Math.random() < 0.1) {
           reject(new Error('Validation service temporarily unavailable'));
           return;
         }
@@ -247,7 +225,7 @@ describe('Email Validation Logic', () => {
         } else {
           resolve({ valid: false });
         }
-      }, 50); // Reduced timeout for testing
+      }, 50);
     });
   };
 
@@ -262,8 +240,6 @@ describe('Email Validation Logic', () => {
   });
 
   test('should handle validation service errors', async () => {
-    // This test is probabilistic due to the random error injection
-    // Run it multiple times to increase chance of hitting the error case
     const attempts = [];
     for (let i = 0; i < 20; i++) {
       attempts.push(
@@ -274,7 +250,6 @@ describe('Email Validation Logic', () => {
     const results = await Promise.all(attempts);
     const errors = results.filter(result => result instanceof Error);
 
-    // We should have at least one error in 20 attempts (probability: 1 - 0.9^20 ≈ 87%)
     expect(errors.length).toBeGreaterThan(0);
   }, 10000);
 });
@@ -313,7 +288,6 @@ describe('Concurrency Control', () => {
     const startTimes = [];
     const endTimes = [];
 
-    // Create 5 tasks that should be limited to 2 concurrent executions
     for (let i = 0; i < 5; i++) {
       tasks.push(
           limit(async () => {
@@ -327,9 +301,8 @@ describe('Concurrency Control', () => {
 
     await Promise.all(tasks);
 
-    // With a limit of 2 and 5 tasks of 100ms each, total time should be roughly 300ms
     const totalTime = Math.max(...endTimes) - Math.min(...startTimes);
-    expect(totalTime).toBeGreaterThan(250); // Allow some margin for timing variations
+    expect(totalTime).toBeGreaterThan(250);
     expect(totalTime).toBeLessThan(400);
   });
 });

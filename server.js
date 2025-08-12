@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const multer = require('multer');
 const csv = require('csv-parser');
@@ -12,7 +11,6 @@ const { Readable } = require('stream');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configure Winston logger
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -29,14 +27,12 @@ const logger = winston.createLogger({
   ]
 });
 
-// In-memory storage for upload status
 const uploadStatus = new Map();
 
-// Configure multer for file uploads
 const upload = multer({
   dest: 'uploads/',
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 10 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
@@ -49,10 +45,9 @@ const upload = multer({
   }
 });
 
-// Rate limiting middleware
 const uploadLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 10, // limit each IP to 10 requests per minute
+  windowMs: 1 * 60 * 1000,
+  max: 10,
   message: {
     error: 'Too many upload requests, please try again later'
   },
@@ -60,12 +55,10 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false
 });
 
-// Mock email validation service
 const mockValidateEmail = async (email) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      // Simulate random failures for demonstration
-      if (Math.random() < 0.1) { // 10% chance of service error
+      if (Math.random() < 0.1) {
         reject(new Error('Validation service temporarily unavailable'));
         return;
       }
@@ -75,14 +68,12 @@ const mockValidateEmail = async (email) => {
       } else {
         resolve({ valid: false });
       }
-    }, 100 + Math.random() * 200); // Random delay between 100-300ms
+    }, 100 + Math.random() * 200);
   });
 };
 
-// Concurrency limiter
 const limit = pLimit(5);
 
-// Parse CSV file using streams for memory efficiency
 const parseCSVFile = (filePath) => {
   return new Promise((resolve, reject) => {
     const results = [];
@@ -93,7 +84,6 @@ const parseCSVFile = (filePath) => {
           mapHeaders: ({ header }) => header.trim().toLowerCase()
         }))
         .on('data', (data) => {
-          // Validate required fields
           if (!data.name || !data.email) {
             errors.push({
               row: results.length + errors.length + 1,
@@ -118,14 +108,12 @@ const parseCSVFile = (filePath) => {
   });
 };
 
-// Process email validations with concurrency control
 const processEmailValidations = async (records, uploadId) => {
   const totalRecords = records.length;
   let processedCount = 0;
   const failedRecords = [];
   const successfulRecords = [];
 
-  // Update initial status
   uploadStatus.set(uploadId, {
     status: 'processing',
     totalRecords,
@@ -158,7 +146,6 @@ const processEmailValidations = async (records, uploadId) => {
 
             processedCount++;
 
-            // Update progress
             const progress = Math.round((processedCount / totalRecords) * 100);
             uploadStatus.set(uploadId, {
               status: 'processing',
@@ -180,7 +167,6 @@ const processEmailValidations = async (records, uploadId) => {
             failedRecords.push(failedRecord);
             processedCount++;
 
-            // Update progress even on error
             const progress = Math.round((processedCount / totalRecords) * 100);
             uploadStatus.set(uploadId, {
               status: 'processing',
@@ -196,7 +182,6 @@ const processEmailValidations = async (records, uploadId) => {
 
     await Promise.all(validationPromises);
 
-    // Final status update
     const finalResult = {
       status: 'completed',
       totalRecords,
@@ -229,14 +214,10 @@ const processEmailValidations = async (records, uploadId) => {
   }
 };
 
-// Routes
-
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Welcome endpoint for browser access
 app.get('/', (req, res) => {
   res.json({
     message: 'File Upload API with Email Validation',
@@ -252,7 +233,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Upload endpoint
 app.post('/upload', uploadLimiter, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -270,12 +250,10 @@ app.post('/upload', uploadLimiter, upload.single('file'), async (req, res) => {
       mimetype: req.file.mimetype
     });
 
-    // Parse CSV file
     let records;
     try {
       records = await parseCSVFile(filePath);
     } catch (error) {
-      // Cleanup uploaded file
       fs.unlink(filePath, (unlinkError) => {
         if (unlinkError) {
           logger.error(`Failed to delete uploaded file: ${unlinkError.message}`);
@@ -289,7 +267,6 @@ app.post('/upload', uploadLimiter, upload.single('file'), async (req, res) => {
     }
 
     if (records.length === 0) {
-      // Cleanup uploaded file
       fs.unlink(filePath, (unlinkError) => {
         if (unlinkError) {
           logger.error(`Failed to delete uploaded file: ${unlinkError.message}`);
@@ -301,20 +278,17 @@ app.post('/upload', uploadLimiter, upload.single('file'), async (req, res) => {
       });
     }
 
-    // Return immediate response with upload ID
     res.json({
       uploadId,
       message: 'File uploaded successfully. Processing started.',
       totalRecords: records.length
     });
 
-    // Process validations asynchronously
     processEmailValidations(records, uploadId)
         .catch(error => {
           logger.error(`Async processing failed for ${uploadId}: ${error.message}`);
         })
         .finally(() => {
-          // Clean up an uploaded file after processing
           fs.unlink(filePath, (unlinkError) => {
             if (unlinkError) {
               logger.error(`Failed to delete uploaded file: ${unlinkError.message}`);
@@ -325,7 +299,6 @@ app.post('/upload', uploadLimiter, upload.single('file'), async (req, res) => {
   } catch (error) {
     logger.error(`Upload endpoint error: ${error.message}`);
 
-    // Clean up uploaded file on error
     if (req.file) {
       fs.unlink(req.file.path, (unlinkError) => {
         if (unlinkError) {
@@ -341,7 +314,6 @@ app.post('/upload', uploadLimiter, upload.single('file'), async (req, res) => {
   }
 });
 
-// Status tracking endpoint
 app.get('/status/:uploadId', (req, res) => {
   const { uploadId } = req.params;
 
@@ -358,7 +330,6 @@ app.get('/status/:uploadId', (req, res) => {
   });
 });
 
-// Error handling middleware
 app.use((error, req, res, next) => {
   logger.error(`Unhandled error: ${error.message}`, { stack: error.stack });
 
@@ -374,7 +345,6 @@ app.use((error, req, res, next) => {
     });
   }
 
-  // Handle our custom file type validation error
   if (error.code === 'INVALID_FILE_TYPE') {
     return res.status(400).json({
       error: error.message
@@ -386,14 +356,12 @@ app.use((error, req, res, next) => {
   });
 });
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     error: 'Endpoint not found'
   });
 });
 
-// Cleanup old upload statuses (run every hour) - only in production
 let cleanupInterval;
 if (process.env.NODE_ENV !== 'test') {
   cleanupInterval = setInterval(() => {
@@ -402,24 +370,22 @@ if (process.env.NODE_ENV !== 'test') {
     for (const [uploadId, status] of uploadStatus.entries()) {
       const statusTime = status.completedAt ?
           new Date(status.completedAt).getTime() :
-          Date.now() - (2 * 60 * 60 * 1000); // If no completion time, assume 2 hours old
+          Date.now() - (2 * 60 * 60 * 1000);
 
       if (statusTime < oneHourAgo) {
         uploadStatus.delete(uploadId);
         logger.info(`Cleaned up old upload status: ${uploadId}`);
       }
     }
-  }, 60 * 60 * 1000); // Run every hour
+  }, 60 * 60 * 1000);
 }
 
-// Start server only if not being imported (i.e., not during testing)
 if (require.main === module) {
   const server = app.listen(PORT, () => {
     logger.info(`Server running on port ${PORT}`);
     console.log(`Server running on http://localhost:${PORT}`);
   });
 
-  // Graceful shutdown
   process.on('SIGTERM', () => {
     logger.info('SIGTERM signal received: closing HTTP server');
     if (cleanupInterval) clearInterval(cleanupInterval);
@@ -429,4 +395,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = app; // Export for testing
+module.exports = app;
