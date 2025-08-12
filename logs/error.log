@@ -1,0 +1,3 @@
+{"level":"error","message":"Email validation error for alice@company.com: Validation service temporarily unavailable","timestamp":"2025-08-11T21:06:19.146Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"error","message":"Email validation error for john@example.com: Validation service temporarily unavailable","timestamp":"2025-08-11T21:06:19.175Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"error","message":"Email validation error for emma.davis: Validation service temporarily unavailable","timestamp":"2025-08-11T21:06:19.345Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}

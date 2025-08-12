@@ -1,0 +1,27 @@
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-08-11T20:30:48.972Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-08-11T20:38:36.161Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-08-11T21:00:49.717Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-08-11T21:05:17.687Z"}
+{"level":"info","message":"File upload started: 7189ae18-6fe1-48dc-8536-f7a8058ff2db","mimetype":"application/octet-stream","originalName":"sample.csv","size":295,"timestamp":"2025-08-11T21:06:19.019Z"}
+{"level":"info","message":"Validating email: john@example.com","recordIndex":0,"timestamp":"2025-08-11T21:06:19.021Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Validating email: jane@test.org","recordIndex":1,"timestamp":"2025-08-11T21:06:19.022Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Validating email: invalid-email","recordIndex":2,"timestamp":"2025-08-11T21:06:19.022Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Validating email: alice@company.com","recordIndex":3,"timestamp":"2025-08-11T21:06:19.022Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Validating email: charlie.brown@email","recordIndex":4,"timestamp":"2025-08-11T21:06:19.022Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Email validation successful: jane@test.org","timestamp":"2025-08-11T21:06:19.145Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Validating email: david@valid-domain.net","recordIndex":5,"timestamp":"2025-08-11T21:06:19.145Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"error","message":"Email validation error for alice@company.com: Validation service temporarily unavailable","timestamp":"2025-08-11T21:06:19.146Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Validating email: emma.davis","recordIndex":6,"timestamp":"2025-08-11T21:06:19.146Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"error","message":"Email validation error for john@example.com: Validation service temporarily unavailable","timestamp":"2025-08-11T21:06:19.175Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Validating email: frank@miller.co.uk","recordIndex":7,"timestamp":"2025-08-11T21:06:19.175Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"warn","message":"Email validation failed: invalid-email","timestamp":"2025-08-11T21:06:19.232Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Validating email: grace@taylor","recordIndex":8,"timestamp":"2025-08-11T21:06:19.233Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Email validation successful: charlie.brown@email","timestamp":"2025-08-11T21:06:19.300Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Validating email: henry@wilson.com","recordIndex":9,"timestamp":"2025-08-11T21:06:19.301Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"error","message":"Email validation error for emma.davis: Validation service temporarily unavailable","timestamp":"2025-08-11T21:06:19.345Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Email validation successful: david@valid-domain.net","timestamp":"2025-08-11T21:06:19.365Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Email validation successful: frank@miller.co.uk","timestamp":"2025-08-11T21:06:19.367Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"warn","message":"Email validation failed: grace@taylor","timestamp":"2025-08-11T21:06:19.414Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"level":"info","message":"Email validation successful: henry@wilson.com","timestamp":"2025-08-11T21:06:19.466Z","uploadId":"7189ae18-6fe1-48dc-8536-f7a8058ff2db"}
+{"completedAt":"2025-08-11T21:06:19.466Z","details":[{"email":"alice@company.com","error":"Validation service temporarily unavailable","name":"Alice Johnson"},{"email":"john@example.com","error":"Validation service temporarily unavailable","name":"John Doe"},{"email":"invalid-email","error":"Invalid email format","name":"Bob Wilson"},{"email":"emma.davis","error":"Validation service temporarily unavailable","name":"Emma Davis"},{"email":"grace@taylor","error":"Invalid email format","name":"Grace Taylor"}],"failedRecords":5,"level":"info","message":"Upload processing completed: 7189ae18-6fe1-48dc-8536-f7a8058ff2db","processedRecords":5,"progress":"100%","status":"completed","timestamp":"2025-08-11T21:06:19.466Z","totalRecords":10}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-08-11T21:23:07.087Z"}
